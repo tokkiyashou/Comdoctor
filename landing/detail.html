@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>컴닥터 — 상세 소개</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .detail-hero { background: linear-gradient(135deg,#4F46E5,#7C3AED); color:#fff; padding:80px 24px; text-align:center; }
+    .detail-hero h1 { font-size:40px; font-weight:800; margin-bottom:12px; }
+    .detail-hero p { font-size:18px; opacity:.85; }
+    .detail-section { max-width:800px; margin:0 auto; padding:60px 24px; }
+    .detail-section h2 { font-size:28px; font-weight:800; margin-bottom:20px; }
+    .detail-section p, .detail-section li { font-size:16px; line-height:1.8; color:#374151; }
+    .detail-section ul { padding-left:24px; margin-bottom:16px; }
+    .detail-section li { margin-bottom:8px; }
+    .spec-table { width:100%; border-collapse:collapse; margin:24px 0; }
+    .spec-table th { background:#4F46E5; color:#fff; padding:12px 16px; text-align:left; font-size:14px; }
+    .spec-table td { padding:12px 16px; border-bottom:1px solid #E5E7EB; font-size:14px; }
+    .spec-table tr:nth-child(even) td { background:#F9FAFB; }
+    .badge-auto { background:#D1FAE5; color:#065F46; padding:2px 8px; border-radius:20px; font-size:12px; }
+    .badge-manual { background:#FEF3C7; color:#92400E; padding:2px 8px; border-radius:20px; font-size:12px; }
+    .divider { border:none; border-top:1px solid #E5E7EB; margin:40px 0; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">💊 컴닥터</a>
+  <div class="nav-links">
+    <a href="index.html">홈</a>
+    <a href="index.html#download" class="btn-download" style="padding:10px 20px;font-size:14px;">다운로드</a>
+  </div>
+</nav>
+
+<div class="detail-hero">
+  <h1>컴닥터 상세 소개</h1>
+  <p>AI가 내 PC를 진단하고, 가장 효율적인 업그레이드를 알려드립니다</p>
+</div>
+
+<div class="detail-section">
+  <h2>컴닥터란?</h2>
+  <p>컴닥터는 Windows PC의 사양을 자동으로 수집하여, 사용자의 목적과 예산에 맞는 최적의 업그레이드 부품을 AI가 추천해주는 데스크톱 앱입니다.</p>
+  <p style="margin-top:12px">복잡한 PC 지식 없이도, 몇 번의 클릭만으로 "게임을 위해 뭘 사야 하는지", "50만원으로 어떤 부품을 바꿔야 하는지" 바로 알 수 있습니다.</p>
+  <hr class="divider">
+
+  <h2>주요 기능</h2>
+  <ul>
+    <li><strong>자동 사양 수집</strong>: CPU, 메인보드, RAM, GPU, 저장장치, OS를 자동으로 읽어옵니다</li>
+    <li><strong>8가지 사용 목적</strong>: 게임, 영상 편집, 방송, 개발, 문서, 감상 등 목적별 최적화</li>
+    <li><strong>예산 슬라이더</strong>: 5만원~100만원 범위에서 예산 설정</li>
+    <li><strong>AI 업그레이드 추천</strong>: Gemini Flash AI가 호환성·우선순위·가격을 동시에 분석</li>
+    <li><strong>호환성 검사</strong>: 메인보드 소켓/칩셋 기준으로 실제 장착 가능 여부 확인</li>
+    <li><strong>수동 입력 지원</strong>: 다른 PC의 사양도 직접 입력해서 진단 가능</li>
+  </ul>
+  <hr class="divider">
+
+  <h2>수집하는 PC 정보</h2>
+  <table class="spec-table">
+    <tr><th>부품</th><th>수집 항목</th><th>방식</th></tr>
+    <tr><td>CPU</td><td>모델명, 코어/스레드, 클럭, 소켓</td><td><span class="badge-auto">자동</span></td></tr>
+    <tr><td>메인보드</td><td>제조사, 모델명</td><td><span class="badge-auto">자동</span></td></tr>
+    <tr><td>RAM</td><td>용량, 규격(DDR4/5), 속도, 슬롯</td><td><span class="badge-auto">자동</span></td></tr>
+    <tr><td>GPU</td><td>모델명, VRAM 용량</td><td><span class="badge-auto">자동</span></td></tr>
+    <tr><td>저장장치</td><td>종류(NVMe/SATA/HDD), 용량</td><td><span class="badge-auto">자동</span></td></tr>
+    <tr><td>운영체제</td><td>Windows 버전, 비트</td><td><span class="badge-auto">자동</span></td></tr>
+    <tr><td>파워 (PSU)</td><td>출력 와트</td><td><span class="badge-manual">수동 입력</span></td></tr>
+    <tr><td>케이스</td><td>폼팩터</td><td><span class="badge-manual">수동 입력</span></td></tr>
+  </table>
+  <hr class="divider">
+
+  <h2>시스템 요구사항</h2>
+  <ul>
+    <li>운영체제: Windows 10 / 11 (64-bit)</li>
+    <li>인터넷 연결 필요 (AI 분석 시)</li>
+    <li>별도 드라이버 설치 불필요</li>
+  </ul>
+  <hr class="divider">
+
+  <h2>개인정보 처리</h2>
+  <p>진단 시 수집되는 PC 사양 정보는 AI 분석 목적으로만 서버에 전송됩니다. 개인 식별 정보는 수집하지 않습니다.</p>
+
+  <div style="text-align:center;margin-top:48px">
+    <a href="index.html#download" class="btn-download">⬇️ 지금 다운로드</a>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 컴닥터. All rights reserved. &nbsp;|&nbsp; <a href="index.html">홈으로</a></p>
+</footer>
+
+</body>
+</html>

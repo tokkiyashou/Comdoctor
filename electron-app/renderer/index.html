@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>컴닥터</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- 메인 -->
+<div class="screen active" id="screen-main">
+  <div class="main-content">
+    <div class="logo-wrap">
+      <img src="../assets/Logo.png" alt="컴닥터" class="logo-img" onerror="this.style.display='none';document.querySelector('.logo-fallback').style.display='flex'">
+      <div class="logo-fallback">💊</div>
+      <div class="logo-glow"></div>
+    </div>
+    <h1 class="app-title">컴닥터</h1>
+    <p class="app-sub">내 PC, 얼마나 더 빨라질 수 있을까요?</p>
+    <div class="main-actions">
+      <button class="btn-primary btn-hero ripple" onclick="App.startDiagnosis()">
+        <span>검사 시작</span>
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <button class="btn-ghost btn-hero ripple" onclick="App.viewMySpecs()">내 PC 정보 가져오기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Step 1 -->
+<div class="screen" id="screen-step1">
+  <div class="step-nav"><div class="step-dots"><span class="dot dot-active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>
+  <div class="step-content">
+    <p class="step-label">STEP 1</p>
+    <h2 class="step-title">어떤 PC를 진단할까요?</h2>
+    <div class="choice-grid">
+      <button class="choice-card ripple" onclick="App.selectThisPC()">
+        <div class="choice-icon-wrap">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <div class="choice-title">이 PC</div>
+        <div class="choice-desc">사양을 자동으로 수집해요</div>
+      </button>
+      <button class="choice-card ripple" onclick="App.goManual()">
+        <div class="choice-icon-wrap">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>
+        </div>
+        <div class="choice-title">직접 입력</div>
+        <div class="choice-desc">사양을 직접 입력할게요</div>
+      </button>
+    </div>
+    <button class="btn-back" onclick="App.showScreen('main')">← 돌아가기</button>
+  </div>
+</div>
+
+<!-- 수집 중 -->
+<div class="screen" id="screen-collecting">
+  <div class="pulse-wrap">
+    <div class="pulse-ring"></div>
+    <div class="pulse-ring pulse-ring-2"></div>
+    <div class="pulse-core">
+      <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+    </div>
+  </div>
+  <h2 class="loading-title">PC 사양 수집 중</h2>
+  <p class="loading-sub">잠시만 기다려주세요</p>
+</div>
+
+<!-- 수동 입력 -->
+<div class="screen" id="screen-manual">
+  <div class="manual-header">
+    <p class="step-label">직접 입력</p>
+    <h2 class="step-title">PC 사양을 입력해주세요</h2>
+    <p class="step-sub">알고 있는 항목만 입력하면 돼요</p>
+  </div>
+  <div class="form-scroll">
+    <div class="form-section">
+      <label class="form-label">CPU <span class="required">*</span></label>
+      <input type="text" id="m-cpu-name" placeholder="예: Intel Core i5-10400" class="form-input">
+      <input type="text" id="m-cpu-socket" placeholder="소켓 (예: LGA1200)" class="form-input">
+    </div>
+    <div class="form-section">
+      <label class="form-label">메인보드</label>
+      <input type="text" id="m-mb-maker" placeholder="제조사 (예: ASUS)" class="form-input">
+      <input type="text" id="m-mb-model" placeholder="모델명 (예: B460M-A)" class="form-input">
+    </div>
+    <div class="form-section">
+      <label class="form-label">RAM <span class="required">*</span></label>
+      <div class="form-row">
+        <input type="number" id="m-ram-size" placeholder="용량 (GB)" class="form-input" min="1">
+        <select id="m-ram-type" class="form-select">
+          <option value="">규격</option>
+          <option value="DDR4">DDR4</option>
+          <option value="DDR5">DDR5</option>
+          <option value="DDR3">DDR3</option>
+        </select>
+        <input type="number" id="m-ram-speed" placeholder="속도 (MHz)" class="form-input">
+      </div>
+      <div class="form-row">
+        <input type="number" id="m-ram-used" placeholder="사용 슬롯" class="form-input" min="1">
+        <input type="number" id="m-ram-total" placeholder="전체 슬롯" class="form-input" min="1">
+      </div>
+    </div>
+    <div class="form-section">
+      <label class="form-label">GPU</label>
+      <input type="text" id="m-gpu-name" placeholder="예: NVIDIA GeForce RTX 3060" class="form-input">
+      <input type="number" id="m-gpu-vram" placeholder="VRAM (GB)" class="form-input" min="1">
+    </div>
+    <div class="form-section">
+      <label class="form-label">저장장치</label>
+      <div class="form-row">
+        <select id="m-storage-type" class="form-select">
+          <option value="">종류</option>
+          <option value="NVMe">NVMe SSD</option>
+          <option value="SATA">SATA SSD</option>
+          <option value="HDD">HDD</option>
+        </select>
+        <input type="number" id="m-storage-size" placeholder="용량 (GB)" class="form-input">
+      </div>
+    </div>
+    <div class="form-section">
+      <label class="form-label">파워 (PSU)</label>
+      <input type="number" id="m-psu" placeholder="출력 와트 (예: 500)" class="form-input">
+    </div>
+    <div class="form-section">
+      <label class="form-label">케이스</label>
+      <select id="m-case" class="form-select form-select-full">
+        <option value="">선택 안 함</option>
+        <option value="ATX">ATX</option>
+        <option value="M-ATX">Micro ATX</option>
+        <option value="ITX">Mini ITX</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn-ghost" onclick="App.showScreen('step1')">← 돌아가기</button>
+    <button class="btn-primary ripple" onclick="App.submitManual()">다음 →</button>
+  </div>
+</div>
+
+<!-- Step 2 -->
+<div class="screen" id="screen-step2">
+  <div class="step-nav"><div class="step-dots"><span class="dot dot-active"></span><span class="dot dot-active"></span><span class="dot"></span><span class="dot"></span></div></div>
+  <div class="step-content">
+    <p class="step-label">STEP 2</p>
+    <h2 class="step-title">주로 어떤 용도로 쓰시나요?</h2>
+    <div class="purpose-grid">
+      <button class="purpose-btn ripple" data-value="게임" onclick="App.selectPurpose(this)"><span class="purpose-icon-wrap"><img class="purpose-icon" src="../assets/icons/joystick.png" alt="게임"></span><span class="purpose-label">게임</span></button>
+      <button class="purpose-btn ripple" data-value="영상 편집" onclick="App.selectPurpose(this)"><span class="purpose-icon-wrap"><img class="purpose-icon" src="../assets/icons/clapper_board.png" alt="영상 편집"></span><span class="purpose-label">영상 편집</span></button>
+      <button class="purpose-btn ripple" data-value="개인 방송·스트리밍" onclick="App.selectPurpose(this)"><span class="purpose-icon-wrap"><img class="purpose-icon" src="../assets/icons/loudspeaker.png" alt="방송·스트리밍"></span><span class="purpose-label">방송·스트리밍</span></button>
+      <button class="purpose-btn ripple" data-value="소프트웨어 개발" onclick="App.selectPurpose(this)"><span class="purpose-icon-wrap"><img class="purpose-icon" src="../assets/icons/puzzle_piece.png" alt="개발"></span><span class="purpose-label">개발</span></button>
+      <button class="purpose-btn ripple" data-value="무거운 작업" onclick="App.selectPurpose(this)"><span class="purpose-icon-wrap"><img class="purpose-icon" src="../assets/icons/gear.png" alt="무거운 작업"></span><span class="purpose-label">무거운 작업</span></button>
+      <button class="purpose-btn ripple" data-value="문서 작업" onclick="App.selectPurpose(this)"><span class="purpose-icon-wrap"><img class="purpose-icon" src="../assets/icons/floppy_disk.png" alt="문서 작업"></span><span class="purpose-label">문서 작업</span></button>
+      <button class="purpose-btn ripple" data-value="콘텐츠 감상" onclick="App.selectPurpose(this)"><span class="purpose-icon-wrap"><img class="purpose-icon" src="../assets/icons/musical_note.png" alt="콘텐츠 감상"></span><span class="purpose-label">콘텐츠 감상</span></button>
+      <button class="purpose-btn ripple" data-value="직접 입력" onclick="App.selectPurpose(this)"><span class="purpose-icon-wrap"><img class="purpose-icon" src="../assets/icons/pencil.png" alt="직접 입력"></span><span class="purpose-label">직접 입력</span></button>
+    </div>
+    <button class="btn-back" onclick="App.goBackFromStep2()">← 돌아가기</button>
+  </div>
+</div>
+
+<!-- Step 3 -->
+<div class="screen" id="screen-step3">
+  <div class="step-nav"><div class="step-dots"><span class="dot dot-active"></span><span class="dot dot-active"></span><span class="dot dot-active"></span><span class="dot"></span></div></div>
+  <div class="step-content">
+    <p class="step-label">STEP 3</p>
+    <h2 class="step-title">업그레이드 예산이 얼마인가요?</h2>
+    <div class="budget-area">
+      <div class="budget-display" id="budget-display">50만원</div>
+      <input type="range" id="budget-slider" min="50000" max="2000000" step="10000" value="500000"
+        oninput="App.updateBudget(this.value)" class="budget-slider">
+      <div class="budget-range-labels"><span>5만원</span><span>200만원</span></div>
+      <div class="budget-manual">
+        <span>직접 입력</span>
+        <input type="number" id="budget-input" placeholder="예: 50" min="5" max="200"
+          oninput="App.updateBudgetFromInput(this.value)" class="form-input budget-input">
+        <span>만원</span>
+      </div>
+    </div>
+    <div class="step-actions">
+      <button class="btn-ghost" onclick="App.showScreen('step2')">← 돌아가기</button>
+      <button class="btn-primary ripple" onclick="App.goToStep4()">다음 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Step 4 -->
+<div class="screen" id="screen-step4">
+  <div class="step-nav"><div class="step-dots"><span class="dot dot-active"></span><span class="dot dot-active"></span><span class="dot dot-active"></span><span class="dot dot-active"></span></div></div>
+  <div class="step-content">
+    <p class="step-label">STEP 4</p>
+    <h2 class="step-title" id="step4-question">세부 사항을 알려주세요</h2>
+    <div id="step4-options" class="purpose-grid"></div>
+    <div id="step4-free" class="free-input-area" style="display:none">
+      <textarea id="free-input" placeholder="어떤 작업을 주로 하실 예정인가요?" class="free-textarea"></textarea>
+    </div>
+    <div class="step-actions">
+      <button class="btn-ghost" onclick="App.showScreen('step3')">← 돌아가기</button>
+      <button class="btn-primary ripple" onclick="App.submitStep4()">분석 시작 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 분석 중 -->
+<div class="screen" id="screen-analyzing">
+  <div class="scan-wrap">
+    <div class="scan-ring"></div>
+    <div class="scan-ring scan-ring-2"></div>
+    <div class="scan-ring scan-ring-3"></div>
+    <div class="scan-core">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M19.07 4.93l-2.12 2.12M7.05 16.95l-2.12 2.12"/></svg>
+    </div>
+  </div>
+  <h2 class="loading-title">AI가 분석하고 있어요</h2>
+  <p class="loading-sub" id="scan-status">PC 사양 파악 중...</p>
+  <div id="analysis-error" class="error-msg" style="display:none"></div>
+  <button class="btn-ghost btn-sm" id="btn-retry" style="display:none;margin-top:16px" onclick="App.retryAnalysis()">다시 시도</button>
+</div>
+
+<!-- 결과 -->
+<div class="screen" id="screen-results">
+  <div class="results-wrap">
+    <div class="result-hero">
+      <div id="result-summary-box" class="summary-text"></div>
+      <div id="result-bottleneck" class="bottleneck-tag"></div>
+    </div>
+    <div id="result-radar" class="radar-card" style="display:none"></div>
+    <div id="result-analysis" class="analysis-card" style="display:none"></div>
+    <div id="result-rec-header" class="rec-section-header" style="display:none">
+      <div class="rec-divider"></div>
+      <span class="rec-title">업그레이드 추천</span>
+      <div class="rec-divider"></div>
+    </div>
+    <div id="result-cards" class="cards-list"></div>
+    <div id="result-total" class="total-row"></div>
+    <div id="result-caution" class="caution-box" style="display:none"></div>
+    <div class="results-actions">
+      <button class="btn-ghost ripple" onclick="App.resetFlow();App.showScreen('main')">처음으로</button>
+      <button class="btn-primary ripple" onclick="App.startDiagnosis()">다시 검사</button>
+    </div>
+  </div>
+</div>
+
+<!-- 내 PC 정보 -->
+<div class="screen" id="screen-specs">
+  <div class="step-content" style="width:100%;max-width:640px;align-items:stretch">
+    <h2 class="step-title" style="text-align:center;margin-bottom:24px">내 PC 정보</h2>
+    <div id="specs-content" class="specs-view"></div>
+    <div style="text-align:center;margin-top:20px">
+      <button class="btn-ghost" onclick="App.showScreen('main')">← 돌아가기</button>
+    </div>
+  </div>
+</div>
+
+<button class="theme-toggle" id="theme-toggle" onclick="App.toggleTheme()" title="다크/라이트 모드 전환">
+  <svg id="icon-moon" width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg id="icon-sun" width="18" height="18" fill="none" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+</button>
+<script src="app.js"></script>
+</body>
+</html>

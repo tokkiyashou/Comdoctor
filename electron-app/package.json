@@ -1,0 +1,30 @@
+{
+  "name": "comdoctor",
+  "version": "1.0.0",
+  "description": "PC 사양 진단 및 업그레이드 추천 앱",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.comdoctor.app",
+    "productName": "컴닥터",
+    "files": ["**/*", "!node_modules/.cache"],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/Logo.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
