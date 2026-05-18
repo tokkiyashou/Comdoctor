@@ -22,6 +22,8 @@ PC 사양을 자동으로 수집하고, AI가 사용 목적과 예산에 맞는 
 | AI 분석 | Google Gemini API |
 | 가격 조회 | 네이버 쇼핑 API |
 | PC 사양 수집 | PowerShell (WMI) |
+| 데이터베이스 | PostgreSQL (분석 이력, 부품 데이터) |
+| 캐시 / Rate limit | Redis |
 | 패키징 | electron-builder |
 
 ---
@@ -58,10 +60,27 @@ GEMINI_MODEL=gemini-2.5-flash
 PORT=3001
 NAVER_CLIENT_ID=네이버_클라이언트_ID
 NAVER_CLIENT_SECRET=네이버_클라이언트_시크릿
+
+# PostgreSQL (없으면 분석 이력 저장 안 함, 서버 정상 동작)
+DATABASE_URL=postgresql://postgres:password@localhost:5432/computer_doctor
 ```
 
 - Gemini API 키: [Google AI Studio](https://aistudio.google.com/app/apikey)
 - 네이버 API 키: [네이버 개발자 센터](https://developers.naver.com)
+
+### DB 설정 (선택)
+
+PostgreSQL이 설치된 경우 아래 순서로 스키마와 시드 데이터를 적용합니다:
+
+```bash
+psql -U postgres -c "CREATE DATABASE computer_doctor WITH ENCODING 'UTF8';"
+psql -U postgres -d computer_doctor -f docs/001_schema.sql
+psql -U postgres -d computer_doctor -f docs/002_seed_part_id.sql
+psql -U postgres -d computer_doctor -f docs/003_seed_part_spec.sql
+psql -U postgres -d computer_doctor -f docs/004_seed_perf_price_usecase_exception.sql
+```
+
+> DB 없이도 앱은 정상 동작합니다. DB 연결 시 분석 이력이 `diagnosis_session` 테이블에 저장됩니다.
 
 ### 실행
 
@@ -93,6 +112,7 @@ npm run build
 Comdoctor/
 ├── server/                 # Express 백엔드
 │   ├── index.js
+│   ├── db.js               # PostgreSQL 연결 (pg)
 │   ├── routes/analyze.js   # Gemini 호출 및 가격 조회
 │   └── logger.js
 ├── electron-app/           # Electron 클라이언트
@@ -100,10 +120,12 @@ Comdoctor/
 │   ├── preload.js
 │   └── renderer/           # UI (HTML/CSS/JS)
 ├── landing/                # 소개 웹페이지
-└── .guide/                 # 개발 문서
-    ├── API_SPEC.md
-    ├── DEVELOPER.md
-    └── DEV_GUIDE.md
+└── docs/                   # 개발 문서 및 DB
+    ├── DATABASE.md         # DB 설계 문서
+    ├── 001_schema.sql      # PostgreSQL 스키마
+    ├── 002_seed_part_id.sql
+    ├── 003_seed_part_spec.sql
+    └── 004_seed_perf_price_usecase_exception.sql
 ```
 
 ---
