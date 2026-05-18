@@ -263,11 +263,11 @@ MISS → Gemini 호출 → 결과 Redis 저장 → 반환
 ## DB 적용 순서
 
 ```bash
-psql -U postgres -c "CREATE DATABASE computer_doctor WITH ENCODING 'UTF8';"
-psql -U postgres -d computer_doctor -f docs/001_schema.sql
-psql -U postgres -d computer_doctor -f docs/002_seed_part_id.sql
-psql -U postgres -d computer_doctor -f docs/003_seed_part_spec.sql
-psql -U postgres -d computer_doctor -f docs/004_seed_perf_price_usecase_exception.sql
+psql -U postgres -c "CREATE DATABASE ComdoctorDB WITH ENCODING 'UTF8';"
+psql -U postgres -d ComdoctorDB -f docs/001_schema.sql
+psql -U postgres -d ComdoctorDB -f docs/002_seed_part_id.sql
+psql -U postgres -d ComdoctorDB -f docs/003_seed_part_spec.sql
+psql -U postgres -d ComdoctorDB -f docs/004_seed_perf_price_usecase_exception.sql
 ```
 
 ---

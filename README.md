@@ -62,7 +62,7 @@ NAVER_CLIENT_ID=네이버_클라이언트_ID
 NAVER_CLIENT_SECRET=네이버_클라이언트_시크릿
 
 # PostgreSQL (없으면 분석 이력 저장 안 함, 서버 정상 동작)
-DATABASE_URL=postgresql://postgres:password@localhost:5432/computer_doctor
+DATABASE_URL=postgresql://postgres:password@localhost:5432/ComdoctorDB
 ```
 
 - Gemini API 키: [Google AI Studio](https://aistudio.google.com/app/apikey)
@@ -73,11 +73,11 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/computer_doctor
 PostgreSQL이 설치된 경우 아래 순서로 스키마와 시드 데이터를 적용합니다:
 
 ```bash
-psql -U postgres -c "CREATE DATABASE computer_doctor WITH ENCODING 'UTF8';"
-psql -U postgres -d computer_doctor -f docs/001_schema.sql
-psql -U postgres -d computer_doctor -f docs/002_seed_part_id.sql
-psql -U postgres -d computer_doctor -f docs/003_seed_part_spec.sql
-psql -U postgres -d computer_doctor -f docs/004_seed_perf_price_usecase_exception.sql
+psql -U postgres -c "CREATE DATABASE ComdoctorDB WITH ENCODING 'UTF8';"
+psql -U postgres -d ComdoctorDB -f docs/001_schema.sql
+psql -U postgres -d ComdoctorDB -f docs/002_seed_part_id.sql
+psql -U postgres -d ComdoctorDB -f docs/003_seed_part_spec.sql
+psql -U postgres -d ComdoctorDB -f docs/004_seed_perf_price_usecase_exception.sql
 ```
 
 > DB 없이도 앱은 정상 동작합니다. DB 연결 시 분석 이력이 `diagnosis_session` 테이블에 저장됩니다.

@@ -38,7 +38,7 @@
 ### 3-2. DB 생성
 
 ```sql
-CREATE DATABASE computer_doctor WITH ENCODING 'UTF8';
+CREATE DATABASE ComdoctorDB WITH ENCODING 'UTF8';
 ```
 
 ### 3-3. 접속 종료
@@ -60,19 +60,19 @@ set PGCLIENTENCODING=UTF8
 ```
 
 ```
-"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d computer_doctor -f docs/001_schema.sql
+"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d ComdoctorDB -f docs/001_schema.sql
 ```
 
 ```
-"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d computer_doctor -f docs/002_seed_part_id.sql
+"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d ComdoctorDB -f docs/002_seed_part_id.sql
 ```
 
 ```
-"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d computer_doctor -f docs/003_seed_part_spec.sql
+"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d ComdoctorDB -f docs/003_seed_part_spec.sql
 ```
 
 ```
-"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d computer_doctor -f docs/004_seed_perf_price_usecase_exception.sql
+"C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d ComdoctorDB -f docs/004_seed_perf_price_usecase_exception.sql
 ```
 
 > **주의**: 명령어를 복붙할 때 한 줄씩 통째로 복붙한다. 줄이 끊기면 `-f` 뒤에 파일명이 사라져서 오류가 난다.
@@ -84,7 +84,7 @@ set PGCLIENTENCODING=UTF8
 `server/.env` 파일에 DB 연결 정보 추가:
 
 ```
-DATABASE_URL=postgresql://postgres:비밀번호@localhost:5432/computer_doctor
+DATABASE_URL=postgresql://postgres:비밀번호@localhost:5432/ComdoctorDB
 ```
 
 ---
