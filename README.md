@@ -74,10 +74,10 @@ PostgreSQL이 설치된 경우 아래 순서로 스키마와 시드 데이터를
 
 ```bash
 psql -U postgres -c "CREATE DATABASE ComdoctorDB WITH ENCODING 'UTF8';"
-psql -U postgres -d ComdoctorDB -f docs/001_schema.sql
-psql -U postgres -d ComdoctorDB -f docs/002_seed_part_id.sql
-psql -U postgres -d ComdoctorDB -f docs/003_seed_part_spec.sql
-psql -U postgres -d ComdoctorDB -f docs/004_seed_perf_price_usecase_exception.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/001_schema.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/002_seed_part_id.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/003_seed_part_spec.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/004_seed_perf_price_usecase_exception.sql
 ```
 
 > DB 없이도 앱은 정상 동작합니다. DB 연결 시 분석 이력이 `diagnosis_session` 테이블에 저장됩니다.
@@ -120,12 +120,16 @@ Comdoctor/
 │   ├── preload.js
 │   └── renderer/           # UI (HTML/CSS/JS)
 ├── landing/                # 소개 웹페이지
-└── docs/                   # 개발 문서 및 DB
+└── .guide/                 # 개발 문서 및 DB
+    ├── API_SPEC.md
+    ├── DEVELOPER.md
     ├── DATABASE.md         # DB 설계 문서
-    ├── 001_schema.sql      # PostgreSQL 스키마
-    ├── 002_seed_part_id.sql
-    ├── 003_seed_part_spec.sql
-    └── 004_seed_perf_price_usecase_exception.sql
+    ├── DB_SETUP.md         # DB 설정 가이드
+    └── db/                 # PostgreSQL SQL 파일
+        ├── 001_schema.sql
+        ├── 002_seed_part_id.sql
+        ├── 003_seed_part_spec.sql
+        └── 004_seed_perf_price_usecase_exception.sql
 ```
 
 ---
