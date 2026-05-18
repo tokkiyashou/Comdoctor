@@ -5,13 +5,13 @@ PC 진단 + 부품 업그레이드 추천 엔진을 위한 PostgreSQL 데이터�
 ## 디렉토리 구조
 
 ```
-computer_doctor_db/
+.guide/db/
 ├── 001_schema.sql                              # 테이블/인덱스/뷰/함수 생성
 ├── 002_seed_part_id.sql                        # Layer 1 시드 (144개 부품)
 ├── 003_seed_part_spec.sql                      # Layer 2 시드 (스펙)
 ├── 004_seed_perf_price_usecase_exception.sql   # Layer 3-5 + 예외 시드
 ├── 005_example_queries.sql                     # 추천 엔진용 예제 쿼리
-└── README.md                                   # 이 파일
+└── DB_README.md                                # 이 파일
 ```
 
 ## 빠른 시작
@@ -20,15 +20,15 @@ PostgreSQL 14+ 가 설치된 환경에서:
 
 ```bash
 # 1. 데이터베이스 생성
-psql -U postgres -c "CREATE DATABASE computer_doctor WITH ENCODING 'UTF8';"
+psql -U postgres -c "CREATE DATABASE ComdoctorDB WITH ENCODING 'UTF8';"
 
 # 2. 스키마 적용
-psql -U postgres -d computer_doctor -f 001_schema.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/001_schema.sql
 
 # 3. 시드 데이터 적용
-psql -U postgres -d computer_doctor -f 002_seed_part_id.sql
-psql -U postgres -d computer_doctor -f 003_seed_part_spec.sql
-psql -U postgres -d computer_doctor -f 004_seed_perf_price_usecase_exception.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/002_seed_part_id.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/003_seed_part_spec.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/004_seed_perf_price_usecase_exception.sql
 
 # 4. 검증
 psql -U postgres -d computer_doctor -c "

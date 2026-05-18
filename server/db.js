@@ -30,6 +30,9 @@ const db = {
         ? Math.min(100, Math.max(0, Math.round(result.scores.overall)))
         : null
 
+      const budgetInt = budget != null ? parseInt(budget, 10) : null
+      const budgetVal = (budgetInt !== null && !isNaN(budgetInt)) ? budgetInt : null
+
       await p.query(
         `INSERT INTO diagnosis_session
            (detected_specs, use_case_id, budget_krw, fit_index, bottleneck)
@@ -37,7 +40,7 @@ const db = {
         [
           JSON.stringify(specs || {}),
           null,                          // use_case_id: 목적 매핑 구현 후 연결
-          budget ? parseInt(budget) : null,
+          budgetVal,
           fitIndex,
           mapBottleneck(result?.bottleneck),
         ]

@@ -1,6 +1,6 @@
 # 컴닥터 데이터베이스 설계
 
-> 실제 스키마: `docs/001_schema.sql` 기준 (PostgreSQL 14+)
+> 실제 스키마: `.guide/db/001_schema.sql` 기준 (PostgreSQL 18+)
 
 ---
 
@@ -264,10 +264,10 @@ MISS → Gemini 호출 → 결과 Redis 저장 → 반환
 
 ```bash
 psql -U postgres -c "CREATE DATABASE ComdoctorDB WITH ENCODING 'UTF8';"
-psql -U postgres -d ComdoctorDB -f docs/001_schema.sql
-psql -U postgres -d ComdoctorDB -f docs/002_seed_part_id.sql
-psql -U postgres -d ComdoctorDB -f docs/003_seed_part_spec.sql
-psql -U postgres -d ComdoctorDB -f docs/004_seed_perf_price_usecase_exception.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/001_schema.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/002_seed_part_id.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/003_seed_part_spec.sql
+psql -U postgres -d ComdoctorDB -f .guide/db/004_seed_perf_price_usecase_exception.sql
 ```
 
 ---

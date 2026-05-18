@@ -40,14 +40,18 @@ PC 사양을 자동으로 수집하고, AI가 사용 목적과 예산에 맞는 
 ```bash
 git clone https://github.com/tokkiyashou/Comdoctor.git
 cd Comdoctor
+```
 
-cd server && npm install
-cd ../electron-app && npm install
+```bash
+cd server
+npm install
+cd ..\electron-app
+npm install
 ```
 
 ### 환경변수 설정
 
-```bash
+```cmd
 copy server\.env.example server\.env
 copy electron-app\.env.example electron-app\.env
 ```
