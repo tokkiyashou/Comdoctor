@@ -284,11 +284,10 @@ INSERT INTO compat_exception (uid_a, uid_b, verdict, severity, reason, source) V
 -- AM4 Ryzen 5800X3D는 일부 B450 보드에서 BIOS 업데이트 필요
 ('CPU-AMD-000003', 'MB-ASUS-000007', 'requires_action', 2,
  'B550 보드에서 5800X3D 사용 시 BIOS 1601 이상 권장. 출시 초기 보드는 BIOS 업데이트 필수.', '제조사 호환성 가이드'),
--- 12세대 인텔 + DDR4 B660 + DDR5 RAM 불가 (보드별 단일 RAM 타입 지원)
-('MB-ASUS-000001', 'RAM-SAMS-000003', 'incompatible', 3,
- 'B660M-A는 DDR4 전용 보드라 DDR5 RAM 사용 불가.', '메인보드 스펙시트'),
-('MB-ASUS-000001', 'RAM-SAMS-000004', 'incompatible', 3,
- 'B660M-A는 DDR4 전용 보드라 DDR5 RAM 사용 불가.', '메인보드 스펙시트'),
+-- (구 항목 삭제됨 v1.0.2)
+--   MB-ASUS-000001 ↔ RAM-SAMS-000003/000004 (DDR4 보드 + DDR5 RAM)
+--   이유: ram_type 매칭으로 호환 쿼리에서 자동 차단되므로
+--   "규칙으로 잡히지 않는 진짜 예외만"이라는 compat_exception 설계 원칙 위반.
 -- RTX 4090 + 850W PSU는 권장 안 함 (4090은 1000W 권장)
 ('GPU-NV-000016', 'PSU-CORS-000004', 'warning', 2,
  'RTX 4090 사용 시 1000W 이상 PSU 권장. 850W는 트랜시언트 스파이크 시 셧다운 위험.', 'NVIDIA 권장 사양'),

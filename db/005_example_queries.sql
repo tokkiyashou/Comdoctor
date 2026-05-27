@@ -1,6 +1,13 @@
 -- ============================================================
 -- 추천 엔진용 예제 쿼리 (Query Cookbook)
+-- Version: 1.0.2
 -- 각 쿼리를 실행해서 결과 확인 가능
+-- ============================================================
+-- v1.0.2 변경점 (CHANGELOG.md 참조):
+--   - G2: aliases NULL 안전 처리 (🔴 버그)
+--   - E1: 벤치마크 누락 시 결과 보존 (🔴 버그)
+--   - A1, A2, A3, B2: cheapest_current_price 뷰로 다중 벤더 증식 해결
+--   - D2: 동점 결정적 처리 (ROW_NUMBER) + 뷰 통일
 -- ============================================================
 
 
@@ -10,7 +17,7 @@
 
 -- A1. 메인보드 기준 호환 CPU 찾기
 -- 입력: 메인보드 UID (예: MB-ASUS-000004)
--- 출력: 호환 CPU 목록 (성능순)
+-- 출력: 호환 CPU 목록 (성능순, 부품당 1행)
 WITH target_mb AS (
     SELECT socket,
            attributes->'supported_cpu_gens' AS cpu_gens
@@ -23,16 +30,16 @@ SELECT
     ps.attributes->>'generation' AS gen,
     (ps.attributes->>'cores')::int AS cores,
     perf.score AS passmark_multi,
-    cp.price_krw
+    cp.price_krw,
+    cp.vendor
 FROM part_id pid
 JOIN part_spec ps USING (uid)
-JOIN current_price cp ON cp.uid = pid.uid
+JOIN cheapest_current_price cp ON cp.uid = pid.uid
 LEFT JOIN part_performance perf ON perf.uid = pid.uid AND perf.benchmark_name = 'passmark_cpu_multi'
 CROSS JOIN target_mb t
 WHERE pid.category = 'CPU'
   AND ps.socket = t.socket
   AND t.cpu_gens @> jsonb_build_array(ps.attributes->>'generation')
-  AND cp.in_stock = TRUE
 ORDER BY perf.score DESC NULLS LAST
 LIMIT 10;
 
@@ -49,16 +56,15 @@ SELECT
     pid.uid, pid.model_name,
     (ps.attributes->>'capacity_gb')::int AS gb,
     (ps.attributes->>'speed_mhz')::int AS mhz,
-    cp.price_krw
+    cp.price_krw, cp.vendor
 FROM part_id pid
 JOIN part_spec ps USING (uid)
-JOIN current_price cp ON cp.uid = pid.uid
+JOIN cheapest_current_price cp ON cp.uid = pid.uid
 CROSS JOIN target_mb t
 WHERE pid.category = 'RAM'
   AND ps.ram_type = t.ram_type
   AND (ps.attributes->>'speed_mhz')::int <= t.max_mhz
   AND (ps.attributes->>'capacity_gb')::int <= t.max_gb
-  AND cp.in_stock = TRUE
 ORDER BY cp.price_krw ASC
 LIMIT 10;
 
@@ -71,15 +77,14 @@ SELECT
     (ps.attributes->>'length_mm')::int AS length_mm,
     ps.tdp_watts,
     perf.score AS g3d_score,
-    cp.price_krw
+    cp.price_krw, cp.vendor
 FROM part_id pid
 JOIN part_spec ps USING (uid)
-JOIN current_price cp ON cp.uid = pid.uid
+JOIN cheapest_current_price cp ON cp.uid = pid.uid
 LEFT JOIN part_performance perf ON perf.uid = pid.uid AND perf.benchmark_name = 'passmark_g3d'
 WHERE pid.category = 'GPU'
   AND (ps.attributes->>'length_mm')::int <= 350   -- 케이스 max GPU 길이
   AND ps.tdp_watts <= 400                          -- (PSU와트 / 1.5) - 다른부품TDP
-  AND cp.in_stock = TRUE
 ORDER BY perf.score DESC NULLS LAST
 LIMIT 10;
 
@@ -141,18 +146,17 @@ SELECT
     pid.uid, pid.model_name,
     (ps.attributes->>'vram_gb')::int AS vram,
     perf.score AS g3d,
-    cp.price_krw,
+    cp.price_krw, cp.vendor,
     -- 가성비 점수: 성능 / 가격
     ROUND(perf.score::numeric / cp.price_krw * 1000, 2) AS perf_per_1000krw
 FROM part_id pid
 JOIN part_spec ps USING (uid)
-JOIN current_price cp ON cp.uid = pid.uid
+JOIN cheapest_current_price cp ON cp.uid = pid.uid
 JOIN part_performance perf ON perf.uid = pid.uid AND perf.benchmark_name = 'passmark_g3d'
 CROSS JOIN target t
 WHERE pid.category = 'GPU'
   AND perf.score >= t.gpu_req_score
   AND (ps.attributes->>'vram_gb')::int >= t.vram_gb_req
-  AND cp.in_stock = TRUE
 ORDER BY perf_per_1000krw DESC
 LIMIT 10;
 
@@ -189,20 +193,26 @@ ORDER BY captured_at DESC
 LIMIT 20;
 
 -- D2. 카테고리별 최저가 (현재가)
-SELECT
-    pid.category,
-    pid.model_name,
-    cp.price_krw
-FROM (
-    SELECT category, MIN(cp2.price_krw) AS min_price
-    FROM part_id pid2
-    JOIN current_price cp2 ON cp2.uid = pid2.uid
-    WHERE cp2.in_stock = TRUE
-    GROUP BY category
-) m
-JOIN part_id pid ON pid.category = m.category
-JOIN current_price cp ON cp.uid = pid.uid AND cp.price_krw = m.min_price
-ORDER BY pid.category;
+-- ROW_NUMBER로 카테고리당 1개씩 결정적으로 선택.
+-- 동점 시 uid 사전순으로 tie-break.
+WITH ranked AS (
+    SELECT
+        pid.category,
+        pid.uid,
+        pid.model_name,
+        cp.price_krw,
+        cp.vendor,
+        ROW_NUMBER() OVER (
+            PARTITION BY pid.category
+            ORDER BY cp.price_krw ASC, pid.uid
+        ) AS rn
+    FROM part_id pid
+    JOIN cheapest_current_price cp ON cp.uid = pid.uid
+)
+SELECT category, model_name, price_krw, vendor
+FROM ranked
+WHERE rn = 1
+ORDER BY category;
 
 
 -- ============================================================
@@ -211,38 +221,43 @@ ORDER BY pid.category;
 
 -- E1. 사용자 PC 전체 적합도 점수 (0-100)
 -- 사업계획서 Step 3 (적합도 매트릭스 계산) 구현
+--
+-- 주의: 벤치마크 미측정 부품(part_performance에 해당 행 없음)은
+--   COALESCE(..., 0)으로 0점 처리 → 결과는 항상 1행 반환.
+--   원본은 CTE + CROSS JOIN 구조라 벤치마크가 없으면 0 row가 나옴 (🔴 버그).
 WITH user_setup AS (
     SELECT
-        'cyberpunk_1440p_60fps' AS use_case_id,
-        'CPU-INTL-000006'   AS current_cpu,
-        'GPU-NV-000009'     AS current_gpu,
-        32                      AS current_ram_gb
+        'cyberpunk_1440p_60fps'::varchar AS use_case_id,
+        'CPU-INTL-000006'::varchar       AS current_cpu,
+        'GPU-NV-000009'::varchar         AS current_gpu,
+        32                               AS current_ram_gb
 ),
 target AS (
-    SELECT cpu_req_score, gpu_req_score, ram_gb_req
+    SELECT ucp.cpu_req_score, ucp.gpu_req_score, ucp.ram_gb_req
     FROM use_case_profile ucp
     JOIN user_setup u USING (use_case_id)
 ),
-cpu_score AS (
-    SELECT pp.score AS s FROM part_performance pp
-    JOIN user_setup u ON pp.uid = u.current_cpu
-    WHERE benchmark_name = 'passmark_cpu_multi'
-),
-gpu_score AS (
-    SELECT pp.score AS s FROM part_performance pp
-    JOIN user_setup u ON pp.uid = u.current_gpu
-    WHERE benchmark_name = 'passmark_g3d'
+scores AS (
+    SELECT
+        COALESCE((
+            SELECT pp.score FROM part_performance pp, user_setup u
+            WHERE pp.uid = u.current_cpu AND pp.benchmark_name = 'passmark_cpu_multi'
+        ), 0) AS cpu_s,
+        COALESCE((
+            SELECT pp.score FROM part_performance pp, user_setup u
+            WHERE pp.uid = u.current_gpu AND pp.benchmark_name = 'passmark_g3d'
+        ), 0) AS gpu_s
 )
 SELECT
-    LEAST(100, ROUND(cpu_score.s / target.cpu_req_score * 100)) AS cpu_fit_pct,
-    LEAST(100, ROUND(gpu_score.s / target.gpu_req_score * 100)) AS gpu_fit_pct,
-    LEAST(100, ROUND(u.current_ram_gb::numeric / target.ram_gb_req * 100)) AS ram_fit_pct,
+    LEAST(100, ROUND(s.cpu_s / NULLIF(t.cpu_req_score, 0) * 100))                AS cpu_fit_pct,
+    LEAST(100, ROUND(s.gpu_s / NULLIF(t.gpu_req_score, 0) * 100))                AS gpu_fit_pct,
+    LEAST(100, ROUND(u.current_ram_gb::numeric / NULLIF(t.ram_gb_req, 0) * 100)) AS ram_fit_pct,
     ROUND((
-        LEAST(100, cpu_score.s / target.cpu_req_score * 100)
-        + LEAST(100, gpu_score.s / target.gpu_req_score * 100)
-        + LEAST(100, u.current_ram_gb::numeric / target.ram_gb_req * 100)
+        LEAST(100, s.cpu_s / NULLIF(t.cpu_req_score, 0) * 100)
+        + LEAST(100, s.gpu_s / NULLIF(t.gpu_req_score, 0) * 100)
+        + LEAST(100, u.current_ram_gb::numeric / NULLIF(t.ram_gb_req, 0) * 100)
     ) / 3) AS overall_fit_index
-FROM user_setup u CROSS JOIN target CROSS JOIN cpu_score CROSS JOIN gpu_score;
+FROM user_setup u CROSS JOIN target t CROSS JOIN scores s;
 
 
 -- ============================================================
@@ -281,6 +296,9 @@ WHERE captured_at < NOW() - INTERVAL '1 year'
   );
 
 -- G2. 별칭 추가 (운영 중 새 별칭 발견 시)
+-- 주의: aliases는 NULL 가능 컬럼. NULL 처리를 빼먹으면 별칭이 한 번도
+--   없었던 부품에 첫 별칭을 영원히 추가하지 못함 (🔴 버그).
 UPDATE part_id
-SET aliases = array_append(aliases, '4070슈퍼')
-WHERE uid = 'GPU-NV-000011' AND NOT ('4070슈퍼' = ANY(aliases));
+SET aliases = array_append(COALESCE(aliases, ARRAY[]::TEXT[]), '4070슈퍼')
+WHERE uid = 'GPU-NV-000011'
+  AND (aliases IS NULL OR NOT ('4070슈퍼' = ANY(aliases)));

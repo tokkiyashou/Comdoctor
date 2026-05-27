@@ -1,6 +1,6 @@
 -- ============================================================
 -- 컴닥터 (Computer Doctor) Database Schema
--- Version: 1.0
+-- Version: 1.0.2
 -- Engine: PostgreSQL 14+
 -- ============================================================
 -- 5-Layer 구조:
@@ -12,6 +12,11 @@
 --
 -- + 보조: compat_exception (호환성 예외)
 -- + 운영: diagnosis_session, recommendation
+--
+-- v1.0.2 변경점 (CHANGELOG.md 참조):
+--   - recommendation.recommended_uid FK: ON DELETE RESTRICT 명시
+--   - diagnosis_session.use_case_id FK: ON DELETE RESTRICT 명시
+--   - cheapest_current_price 뷰 추가 (부품당 1행, 다중 벤더 증식 방지)
 -- ============================================================
 
 -- 데이터베이스 생성 (필요시)
@@ -130,7 +135,13 @@ CREATE INDEX idx_price_vendor ON part_price(vendor);
 
 COMMENT ON TABLE part_price IS 'Layer 4: 시계열 가격 (append-only)';
 
--- 현재가 조회용 뷰
+-- ------------------------------------------------------------
+-- 뷰: current_price (각 부품×벤더의 가장 최근 가격)
+-- ------------------------------------------------------------
+-- 가격 추이/벤더 비교 등 "벤더별로 쪼개진" 데이터가 필요한 곳에 사용.
+-- 주의: 부품당 1행이 아니므로 추천/검색 쿼리에서 단순 JOIN 시 row 증식.
+--       그런 경우엔 아래 cheapest_current_price 사용.
+
 CREATE OR REPLACE VIEW current_price AS
 SELECT DISTINCT ON (uid, vendor)
     uid,
@@ -143,6 +154,28 @@ FROM part_price
 ORDER BY uid, vendor, captured_at DESC;
 
 COMMENT ON VIEW current_price IS '각 부품×벤더의 가장 최근 가격';
+
+-- ------------------------------------------------------------
+-- 뷰: cheapest_current_price (각 부품의 최저가 1행)
+-- ------------------------------------------------------------
+-- 추천/검색 쿼리는 "부품당 1행 + 최저가 + 재고 있음"이 필요함.
+-- current_price를 단순 JOIN하면 벤더 수만큼 row가 곱해져
+-- LIMIT N이 "N개 부품"을 보장하지 못함 → 이 뷰가 그 문제 해결.
+
+CREATE OR REPLACE VIEW cheapest_current_price AS
+SELECT DISTINCT ON (uid)
+    uid,
+    vendor,
+    price_krw,
+    url,
+    in_stock,
+    captured_at
+FROM current_price
+WHERE in_stock = TRUE
+ORDER BY uid, price_krw ASC, vendor;
+
+COMMENT ON VIEW cheapest_current_price IS
+    '각 부품의 최저가 1행 (재고 있는 것만). 추천/검색 쿼리용. 다중 벤더 증식 방지';
 
 
 -- ============================================================
@@ -206,12 +239,16 @@ COMMENT ON TABLE compat_exception IS '규칙으로 잡히지 않는 호환성 �
 -- ============================================================
 -- 사용자 진단 세션 기록. KPI 측정 + 추천 학습용.
 -- ============================================================
+-- 변경 (v1.0.2): use_case_id FK에 ON DELETE RESTRICT 명시
+--   이전: 묵시적 NO ACTION. 의도 불명확
+--   현재: 마스터 데이터(use_case_profile) 삭제 시 명시적으로 차단
 
 CREATE TABLE diagnosis_session (
     session_id     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id        UUID,                       -- 비회원도 가능
     detected_specs JSONB NOT NULL,             -- 에이전트가 수집한 현재 PC
-    use_case_id    VARCHAR(50) REFERENCES use_case_profile(use_case_id),
+    use_case_id    VARCHAR(50)
+                   REFERENCES use_case_profile(use_case_id) ON DELETE RESTRICT,
     budget_krw     INTEGER,
     fit_index      SMALLINT CHECK (fit_index BETWEEN 0 AND 100),
     bottleneck     VARCHAR(20)
@@ -231,11 +268,16 @@ COMMENT ON TABLE diagnosis_session IS '사용자 진단 세션 기록';
 -- ============================================================
 -- 추천 결과 + 사용자 행동 추적 (CTR, 구매 전환).
 -- ============================================================
+-- 변경 (v1.0.2): recommended_uid FK에 ON DELETE RESTRICT 명시
+--   이전: 묵시적 NO ACTION. 다른 FK들은 CASCADE 명시되어 일관성 부족
+--   현재: 추천 이력은 분석 데이터이므로 마스터(part_id) 삭제 차단을 명시
 
 CREATE TABLE recommendation (
     id              BIGSERIAL PRIMARY KEY,
-    session_id      UUID NOT NULL REFERENCES diagnosis_session(session_id) ON DELETE CASCADE,
-    recommended_uid VARCHAR(30) NOT NULL REFERENCES part_id(uid),
+    session_id      UUID NOT NULL
+                    REFERENCES diagnosis_session(session_id) ON DELETE CASCADE,
+    recommended_uid VARCHAR(30) NOT NULL
+                    REFERENCES part_id(uid) ON DELETE RESTRICT,
     rank            SMALLINT NOT NULL,
     fit_score       NUMERIC(5, 2),         -- 적합도 점수 0-100
     reasoning       TEXT,                  -- 추천 이유 (사용자 표시용)
@@ -293,4 +335,5 @@ CREATE TABLE schema_version (
 INSERT INTO schema_version (version, description)
 VALUES
   ('1.0.0', '초기 스키마: 5-Layer + 보조 + 운영'),
-  ('1.0.1', 'UID를 순수 식별자로 단순화 (예: GPU-NV-000001). part_performance 중복 인덱스 정리.');
+  ('1.0.1', 'UID를 순수 식별자로 단순화 (예: GPU-NV-000001). part_performance 중복 인덱스 정리.'),
+  ('1.0.2', 'FK ON DELETE 명시 (recommendation, diagnosis_session). cheapest_current_price 뷰 추가 (부품당 1행, 다중 벤더 증식 방지). compat_exception 시드에서 규칙 중복 2건 제거.');
